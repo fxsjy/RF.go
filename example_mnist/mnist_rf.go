@@ -97,7 +97,7 @@ func main () {
 
     //fmt.Println(inputs[0],targets[0])
 
-    forest := RF.DefaultForest(inputs,targets,500)
+    forest := RF.DefaultForest(inputs,targets,1000)
 
     var testLabelData []byte
     var testImageData [][]byte

@@ -15,7 +15,7 @@ type TreeNode struct{
 	Value interface{}
 	Left *TreeNode
 	Right *TreeNode
-	Label string
+	Labels map[string]int
 }
 
 type Tree struct{
@@ -185,24 +185,16 @@ func genLeafNode(labels []string) *TreeNode{
 		counter[v] += 1
 	}
 
-	max_c := 0
-	max_label := ""
-	for k,v := range counter{
-		if v>max_c{
-			max_c = v
-			max_label = k
-		}
-	}
 	node := &TreeNode{}
-	node.Label = max_label
+	node.Labels = counter
 	//fmt.Println(node)
 	return node
 }
 
 
-func predicate(node *TreeNode, input []interface{}) string{
-	if node.Label != ""{ //leaf node
-		return node.Label
+func predicate(node *TreeNode, input []interface{}) map[string]int{
+	if node.Labels != nil{ //leaf node
+		return node.Labels
 	}
 
 	c := node.ColumnNo
@@ -223,7 +215,7 @@ func predicate(node *TreeNode, input []interface{}) string{
 		}
 	}
 
-	return "unknown"
+	return nil
 }
 
 
@@ -245,6 +237,6 @@ func BuildTree(inputs [][]interface{}, labels []string, samples_count,selected_f
 
 
 
-func PredicateTree(tree *Tree, input []interface{}) string{
+func PredicateTree(tree *Tree, input []interface{}) map[string]int{
 	return predicate(tree.Root,input)
 }

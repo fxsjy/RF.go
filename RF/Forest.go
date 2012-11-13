@@ -27,12 +27,19 @@ func DefaultForest(inputs [][]interface{},labels []string, treesAmount int) *For
 }
 
 func (self *Forest) Predicate(input []interface{}) string{
-	counter := make(map[string]int)
+	counter := make(map[string]float64)
 	for i:=0;i<len(self.Trees);i++{
-		label := PredicateTree(self.Trees[i],input)
-		counter[label] += 1
+		tree_counter := PredicateTree(self.Trees[i],input)
+		total := 0.0
+		for _,v := range tree_counter{
+			total += float64(v)
+		}
+		for k,v := range tree_counter{
+			counter[k] += float64(v) / total
+		}
 	}
-	max_c := 0
+
+	max_c := 0.0
 	max_label := ""
 	for k,v := range counter{
 		if v>=max_c{

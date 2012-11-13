@@ -66,7 +66,7 @@ func main(){
 		}
 	}
 
-	forest := RF.DefaultForest(inputs,targets,100)//100 trees
+	forest := RF.DefaultForest(inputs,targets,150)//100 trees
 
 	err_count := 0.0
 	for i:=0;i<len(test_inputs);i++{
