@@ -22,7 +22,7 @@ func BuildForest(inputs [][]interface{},labels []string, treesAmount, samplesAmo
 
 func DefaultForest(inputs [][]interface{},labels []string, treesAmount int) *Forest{
 	m := int( math.Sqrt( float64( len(inputs[0]) ) ) ) 
-	n := int( math.Log( float64( len(inputs) ) ) / math.Log(1.5) )
+	n := int( math.Log( float64( len(inputs) ) ) / math.Log(1.3) )
 	return BuildForest(inputs,labels, treesAmount,n,m)
 }
 

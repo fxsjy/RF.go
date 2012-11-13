@@ -8,12 +8,7 @@ import (
     "flag"
 )
 
-const numLabels = 10
-const epsilon = 0.001
-const hiddenNodes = 100
-const pixelRange = 255
-const learningRate = 0.25
-const momentum = 0.10
+
 
 func ReadMNISTLabels (r io.Reader) (labels []byte) {
     header := [2]int32{}
@@ -55,9 +50,7 @@ func OpenFile (path string) *os.File {
     return file
 }
 
-func pixelWeight (px byte) float64 {
-   return float64(px) / pixelRange * 0.9 + 0.1 
-}
+
 
 func prepareX(M [][]byte) [][]interface{}{
     rows := len(M)
@@ -104,7 +97,7 @@ func main () {
 
     //fmt.Println(inputs[0],targets[0])
 
-    forest := RF.DefaultForest(inputs,targets,2000)
+    forest := RF.DefaultForest(inputs,targets,500)
 
     var testLabelData []byte
     var testImageData [][]byte
