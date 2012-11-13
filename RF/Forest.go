@@ -3,6 +3,8 @@ package RF
 import (
 	"log"
 	"math"
+	"time"
+	"math/rand"
 	//"fmt"
 )
 type Forest struct{
@@ -10,6 +12,7 @@ type Forest struct{
 }
 
 func BuildForest(inputs [][]interface{},labels []string, treesAmount, samplesAmount, selectedFeatureAmount int) *Forest{
+	rand.Seed(time.Now().UnixNano())
 	forest := &Forest{}
 	forest.Trees = make([]*Tree,treesAmount)
 	for i:=0;i<treesAmount;i++{

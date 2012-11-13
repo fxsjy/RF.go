@@ -4,7 +4,6 @@ package RF
 import (
 	"math"
 	"math/rand"
-	"time"
 )
 
 const CAT = "cat"
@@ -220,7 +219,7 @@ func predicate(node *TreeNode, input []interface{}) map[string]int{
 
 
 func BuildTree(inputs [][]interface{}, labels []string, samples_count,selected_feature_count int) *Tree{
-	rand.Seed(time.Now().UnixNano())
+
 	samples := make([][]interface{},samples_count)
 	samples_labels := make([]string,samples_count)
 	for i:=0;i<samples_count;i++{
