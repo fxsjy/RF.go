@@ -1,11 +1,10 @@
 package RF
 
 import (
-	"log"
 	"math"
 	"time"
 	"math/rand"
-	//"fmt"
+	"fmt"
 )
 type Forest struct{
 	Trees []*Tree
@@ -15,11 +14,22 @@ func BuildForest(inputs [][]interface{},labels []string, treesAmount, samplesAmo
 	rand.Seed(time.Now().UnixNano())
 	forest := &Forest{}
 	forest.Trees = make([]*Tree,treesAmount)
+	done_flag := make(chan bool)
 	for i:=0;i<treesAmount;i++{
-		log.Printf("building the %vth tree\n", i)
-		forest.Trees[i] = BuildTree(inputs,labels,samplesAmount,selectedFeatureAmount)
+		go func(x int){
+			fmt.Printf("buiding %vth tree...\n", x)
+			forest.Trees[x] = BuildTree(inputs,labels,samplesAmount,selectedFeatureAmount)
+			fmt.Printf("the %vth tree is done.\n", x)
+			done_flag <- true
+		}(i)
 	}
-	log.Println("done.")
+
+	for i:=1;i<=treesAmount;i++{
+		<-done_flag
+		fmt.Printf("tranning progress %v%%\n",float64(i)/float64(treesAmount)*100)
+	}
+
+	fmt.Println("all done.")
 	return forest
 }
 

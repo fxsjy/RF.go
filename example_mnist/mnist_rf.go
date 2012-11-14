@@ -6,6 +6,7 @@ import (
     "os"
     "fmt"
     "flag"
+    "runtime"
 )
 
 
@@ -73,6 +74,7 @@ func prepareY(N []byte) []string{
 }
 
 func main () {
+    runtime.GOMAXPROCS(8)
     sourceLabelFile := flag.String("sl", "", "source label file")
     sourceImageFile := flag.String("si", "", "source image file")
     testLabelFile := flag.String("tl", "", "test label file")
@@ -97,7 +99,7 @@ func main () {
 
     //fmt.Println(inputs[0],targets[0])
 
-    forest := RF.BuildForest(inputs,targets,100,1850,30)
+    forest := RF.BuildForest(inputs,targets,100,2000,30) //100 tries, 2000 samples, 30 features
 
     var testLabelData []byte
     var testImageData [][]byte
