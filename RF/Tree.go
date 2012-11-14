@@ -4,6 +4,7 @@ package RF
 import (
 	"math"
 	"math/rand"
+	//"fmt"
 )
 
 const CAT = "cat"
@@ -70,6 +71,29 @@ func getEntropy(ep_map map[string]float64) float64 {
 }
 
 
+func getGini(ep_map map[string]float64) float64 {
+	total := 0.0
+	for _,v := range ep_map{
+		total += v
+	}
+
+	for k,_ := range ep_map{
+		ep_map[k] = ep_map[k] / total //normalize
+	}
+
+	impure := 0.0
+	for k1,v1 := range ep_map{
+		for k2,v2 := range ep_map{
+			if k1!=k2{
+				impure += v1*v2
+			}
+		} 
+	}
+	return impure
+}
+
+
+
 func getBestGain(samples [][]interface{}, c int, samples_labels []string, column_type string) (float64,interface{},[]int,[]int){
 	var best_part_l []int
 	var best_part_r []int
@@ -93,7 +117,6 @@ func getBestGain(samples [][]interface{}, c int, samples_labels []string, column
 		map_r := make(map[string]float64)
 		part_l := make([]int,0)
 		part_r := make([]int,0)
-
 		if column_type==CAT{
 			for j:=0;j<len(samples);j++{
 				if samples[j][c]==value{
@@ -117,9 +140,11 @@ func getBestGain(samples [][]interface{}, c int, samples_labels []string, column
 			}
 		}
 
-		p1 := float64(len(map_r)) / float64(len(current_entropy_map))
-		p2 := float64(len(map_l)) / float64(len(current_entropy_map))
+		p1 := float64(len(part_r)) / float64(len(samples))
+		p2 := float64(len(part_l)) / float64(len(samples))
+
 		new_entropy := p1*getEntropy(map_r) + p2*getEntropy(map_l)
+		//fmt.Println(new_entropy,current_entropy)
 		entropy_gain := current_entropy - new_entropy
 		
 		if entropy_gain>=best_gain{
