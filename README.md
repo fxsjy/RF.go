@@ -1,7 +1,7 @@
 RF.go
 =====
 
-* RF.go is a implementation of Random Forest in GoLang. 
+* RF.go is an implementation of Random Forest in GoLang. 
 
 		Random forest (or random forests) is an ensemble classifier that consists of many
 		 decision trees and outputs the class that is the mode of the classes output by 
