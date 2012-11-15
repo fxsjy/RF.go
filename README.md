@@ -3,7 +3,10 @@ RF.go
 
 * RF.go is a implementation of Random Forest in GoLang. 
 
-		Random forest (or random forests) is an ensemble classifier that consists of many decision trees and outputs the class that is the mode of the classes output by individual trees.
+		Random forest (or random forests) is an ensemble classifier that consists of many
+		 decision trees and outputs the class that is the mode of the classes output by 
+		 individual trees. http://en.wikipedia.org/wiki/Random_forest
+
 
 * RF.go can train trees in parallel mode with assigning go-routine to each decision tree, which can utilize multiple-core CPU efficiently.
 
