@@ -101,6 +101,7 @@ func main () {
 
     forest := RF.BuildForest(inputs,targets,100,2000,30) //100 tries, 2000 samples, 30 features
 
+    //RF.DumpForest(forest,"rf.bin")
     var testLabelData []byte
     var testImageData [][]byte
     if *testLabelFile != "" && *testImageFile != "" {

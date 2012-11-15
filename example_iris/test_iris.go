@@ -68,6 +68,10 @@ func main(){
 
 	forest := RF.DefaultForest(inputs,targets,100)//100 trees
 
+	RF.DumpForest(forest,"rf.bin")
+
+	forest = RF.LoadForest("rf.bin")
+
 	err_count := 0.0
 	for i:=0;i<len(test_inputs);i++{
 		output := forest.Predicate(test_inputs[i])

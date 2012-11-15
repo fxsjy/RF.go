@@ -5,6 +5,9 @@ import (
 	"time"
 	"math/rand"
 	"fmt"
+	"os"
+	"encoding/json"
+	"sync"
 )
 type Forest struct{
 	Trees []*Tree
@@ -15,18 +18,23 @@ func BuildForest(inputs [][]interface{},labels []string, treesAmount, samplesAmo
 	forest := &Forest{}
 	forest.Trees = make([]*Tree,treesAmount)
 	done_flag := make(chan bool)
+	prog_counter := 0
+	mutex := &sync.Mutex{}
 	for i:=0;i<treesAmount;i++{
 		go func(x int){
-			fmt.Printf("buiding %vth tree...\n", x)
+			fmt.Printf(">> %v buiding %vth tree...\n", time.Now(), x)
 			forest.Trees[x] = BuildTree(inputs,labels,samplesAmount,selectedFeatureAmount)
-			fmt.Printf("the %vth tree is done.\n", x)
+			//fmt.Printf("<< %v the %vth tree is done.\n",time.Now(), x)
+			mutex.Lock()
+			prog_counter+=1
+			fmt.Printf("%v tranning progress %.0f%%\n",time.Now(),float64(prog_counter) / float64(treesAmount)*100) 
+			mutex.Unlock()
 			done_flag <- true
 		}(i)
 	}
 
 	for i:=1;i<=treesAmount;i++{
 		<-done_flag
-		fmt.Printf("tranning progress %v%%\n",float64(i)/float64(treesAmount)*100)
 	}
 
 	fmt.Println("all done.")
@@ -62,4 +70,27 @@ func (self *Forest) Predicate(input []interface{}) string{
 	}
 	return max_label
 }
+
+func DumpForest(forest *Forest, fileName string){
+	out_f, err:=os.OpenFile(fileName,os.O_CREATE,777)
+	if err!=nil{
+		panic("failed to create "+fileName)
+	}
+	defer out_f.Close()
+	encoder := json.NewEncoder(out_f)
+	encoder.Encode(forest)
+}
+
+func LoadForest(fileName string) *Forest{
+	in_f ,err := os.Open(fileName)
+	if err!=nil{
+		panic("failed to open "+fileName)
+	}
+	defer in_f.Close()
+	decoder := json.NewDecoder(in_f)
+	forest := &Forest{}
+	decoder.Decode(forest)
+	return forest
+}
+
 
