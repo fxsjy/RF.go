@@ -72,7 +72,7 @@ func (self *Forest) Predicate(input []interface{}) string{
 }
 
 func DumpForest(forest *Forest, fileName string){
-	out_f, err:=os.OpenFile(fileName,os.O_CREATE,777)
+	out_f, err:=os.OpenFile(fileName,os.O_CREATE | os.O_RDWR,0777)
 	if err!=nil{
 		panic("failed to create "+fileName)
 	}
