@@ -51,14 +51,10 @@ func getLabels(ary []string, index []int ) []string{
 	return result
 }
 
-func getEntropy(ep_map map[string]float64) float64 {
-	total := 0.0
-	for _,v := range ep_map{
-		total += v
-	}
-
+func getEntropy(ep_map map[string]float64, total int) float64 {
+	
 	for k,_ := range ep_map{
-		ep_map[k] = ep_map[k] / total //normalize
+		ep_map[k] = ep_map[k] / float64(total) //normalize
 	}
 
 	entropy := 0.0
@@ -135,7 +131,7 @@ func getBestGain(samples [][]interface{}, c int, samples_labels []string, column
 		p1 := float64(len(part_r)) / float64(len(samples))
 		p2 := float64(len(part_l)) / float64(len(samples))
 
-		new_entropy := p1*getEntropy(map_r) + p2*getEntropy(map_l)
+		new_entropy := p1*getEntropy(map_r,len(part_r)) + p2*getEntropy(map_l,len(part_l))
 		//fmt.Println(new_entropy,current_entropy)
 		entropy_gain := current_entropy - new_entropy
 		
@@ -170,7 +166,7 @@ func buildTree(samples [][]interface{}, samples_labels []string, selected_featur
 		current_entropy_map[samples_labels[i]] += 1
 	}
 
-	current_entropy := getEntropy(current_entropy_map)
+	current_entropy := getEntropy(current_entropy_map,len(samples_labels))
 
 	for _,c := range columns_choosen{
 		column_type := CAT
