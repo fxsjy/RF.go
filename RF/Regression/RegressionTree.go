@@ -67,13 +67,11 @@ func getMSE(labels []float64) float64 {
 }
 
 
-func getBestGain(samples [][]interface{}, c int, samples_labels []float64, column_type string) (float64,interface{},[]int,[]int){
+func getBestGain(samples [][]interface{}, c int, samples_labels []float64, column_type string,current_mse float64) (float64,interface{},[]int,[]int){
 	var best_part_l []int
 	var best_part_r []int
 	var best_value interface{}
 	best_gain := 0.0
-
-	current_mse := getMSE(samples_labels)
 
 	uniq_values := make(map[interface{}]int)
 	for i:=0;i<len(samples);i++{
@@ -141,13 +139,15 @@ func buildTree(samples [][]interface{}, samples_labels []float64, selected_featu
 	var best_value interface{}
 	var best_column int
 
+	current_mse := getMSE(samples_labels)
+
 	for _,c := range columns_choosen{
 		column_type := CAT
 		if _,ok := samples[0][c].(float64) ; ok{
 			column_type = NUMERIC
 		}
 
-		gain,value,part_l,part_r := getBestGain(samples,c,samples_labels,column_type)
+		gain,value,part_l,part_r := getBestGain(samples,c,samples_labels,column_type,current_mse)
 		//fmt.Println("kkkkk",gain,part_l,part_r)
 		if gain>=best_gain{
 			best_gain = gain

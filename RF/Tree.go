@@ -4,7 +4,6 @@ package RF
 import (
 	"math"
 	"math/rand"
-	//"fmt"
 )
 
 const CAT = "cat"
@@ -94,18 +93,11 @@ func getGini(ep_map map[string]float64) float64 {
 
 
 
-func getBestGain(samples [][]interface{}, c int, samples_labels []string, column_type string) (float64,interface{},[]int,[]int){
+func getBestGain(samples [][]interface{}, c int, samples_labels []string, column_type string, current_entropy float64) (float64,interface{},[]int,[]int){
 	var best_part_l []int
 	var best_part_r []int
 	var best_value interface{}
 	best_gain := 0.0
-
-	current_entropy_map := make(map[string]float64)
-	for i:=0;i<len(samples_labels);i++{
-		current_entropy_map[samples_labels[i]] += 1
-	}
-
-	current_entropy := getEntropy(current_entropy_map)
 
 	uniq_values := make(map[interface{}]int)
 	for i:=0;i<len(samples);i++{
@@ -173,13 +165,20 @@ func buildTree(samples [][]interface{}, samples_labels []string, selected_featur
 	var best_value interface{}
 	var best_column int
 
+	current_entropy_map := make(map[string]float64)
+	for i:=0;i<len(samples_labels);i++{
+		current_entropy_map[samples_labels[i]] += 1
+	}
+
+	current_entropy := getEntropy(current_entropy_map)
+
 	for _,c := range columns_choosen{
 		column_type := CAT
 		if _,ok := samples[0][c].(float64) ; ok{
 			column_type = NUMERIC
 		}
 
-		gain,value,part_l,part_r := getBestGain(samples,c,samples_labels,column_type)
+		gain,value,part_l,part_r := getBestGain(samples,c,samples_labels,column_type,current_entropy)
 		//fmt.Println("kkkkk",gain,part_l,part_r)
 		if gain>=best_gain{
 			best_gain = gain
