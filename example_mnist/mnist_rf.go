@@ -99,7 +99,7 @@ func main () {
 
     //fmt.Println(inputs[0],targets[0])
 
-    forest := RF.BuildForest(inputs,targets,50,2000,30) //100 tries, 2000 samples, 30 features
+    forest := RF.BuildForest(inputs,targets,100,2000,30) //100 tries, 2000 samples, 30 features
 
     //RF.DumpForest(forest,"rf.bin")
     var testLabelData []byte

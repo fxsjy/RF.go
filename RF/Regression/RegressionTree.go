@@ -35,6 +35,7 @@ func getRandomRange(N int, M int) []int{
 }
 
 func getSamples(ary [][]interface{}, index []int)  [][]interface{} {
+	//fmt.Println("ary",ary)
 	result := make([][]interface{}, len(index))
 	for i:=0;i<len(index);i++{
 		result[i] = ary[index[i]]
@@ -52,6 +53,9 @@ func getLabels(ary []float64, index []int ) []float64{
 }
 
 func getMSE(labels []float64) float64 {
+	if len(labels)==0{
+		return 0.0
+	}
 	total := 0.0
 	for _,x := range labels{
 		total += x
@@ -111,6 +115,7 @@ func getBestGain(samples [][]interface{}, c int, samples_labels []float64, colum
 
 		new_mse := p1*getMSE(labels_r) + p2*getMSE(labels_l)
 
+		//fmt.Println(new_mse,part_l,part_r)
 		mse_gain := current_mse - new_mse
 		
 		if mse_gain>=best_gain{
@@ -128,6 +133,8 @@ func getBestGain(samples [][]interface{}, c int, samples_labels []float64, colum
 func buildTree(samples [][]interface{}, samples_labels []float64, selected_feature_count int) *TreeNode{
 	//fmt.Println(len(samples))
 	//find a best splitter
+	//fmt.Println(samples)
+	//fmt.Println("~~~~")
 	column_count := len(samples[0])
 	//split_count := int(math.Log(float64(column_count)))
 	split_count := selected_feature_count
@@ -146,7 +153,7 @@ func buildTree(samples [][]interface{}, samples_labels []float64, selected_featu
 		if _,ok := samples[0][c].(float64) ; ok{
 			column_type = NUMERIC
 		}
-
+		//fmt.Println(column_type)
 		gain,value,part_l,part_r := getBestGain(samples,c,samples_labels,column_type,current_mse)
 		//fmt.Println("kkkkk",gain,part_l,part_r)
 		if gain>=best_gain{
@@ -159,6 +166,7 @@ func buildTree(samples [][]interface{}, samples_labels []float64, selected_featu
 	}
 
 	if best_gain>0 && len(best_part_l)>0 && len(best_part_r)>0 {
+		//fmt.Println(best_part_l,best_part_r)
 		node := &TreeNode{}
 		node.Value = best_value
 		node.ColumnNo = best_column
@@ -185,6 +193,7 @@ func genLeafNode(labels []float64) *TreeNode{
 
 
 func predicate(node *TreeNode, input []interface{}) float64{
+	//fmt.Println("node",node)
 	if node.Value == nil{ //leaf node
 		return node.Label
 	}
@@ -199,7 +208,7 @@ func predicate(node *TreeNode, input []interface{}) float64{
 		}else if node.Right!=nil{
 			return predicate(node.Right,input)
 		}
-	case string:
+	default:
 		if value==node.Value && node.Left!=nil{
 			return predicate(node.Left,input)
 		}else if node.Right != nil{
@@ -212,7 +221,6 @@ func predicate(node *TreeNode, input []interface{}) float64{
 
 
 func BuildTree(inputs [][]interface{}, labels []float64, samples_count,selected_feature_count int) *Tree{
-
 	samples := make([][]interface{},samples_count)
 	samples_labels := make([]float64,samples_count)
 	for i:=0;i<samples_count;i++{
@@ -221,9 +229,9 @@ func BuildTree(inputs [][]interface{}, labels []float64, samples_count,selected_
 		samples_labels[i] = labels[j]
 	}
 
+	//fmt.Println(samples)
 	tree := &Tree{}
 	tree.Root = buildTree(samples,samples_labels, selected_feature_count)
-
 	return tree
 }
 
