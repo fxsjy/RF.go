@@ -89,11 +89,11 @@ func getGini(ep_map map[string]float64) float64 {
 
 
 
-func getBestGain(samples [][]interface{}, c int, samples_labels []string, column_type string, current_entropy float64) (float64,interface{},[]int,[]int){
-	var best_part_l []int
-	var best_part_r []int
+func getBestGain(samples [][]interface{}, c int, samples_labels []string, column_type string, current_entropy float64) (float64,interface{},int,int){
 	var best_value interface{}
 	best_gain := 0.0
+	best_total_r := 0
+	best_total_l := 0
 
 	uniq_values := make(map[interface{}]int)
 	for i:=0;i<len(samples);i++{
@@ -103,15 +103,15 @@ func getBestGain(samples [][]interface{}, c int, samples_labels []string, column
 	for value,_ := range uniq_values{
 		map_l := make(map[string]float64)
 		map_r := make(map[string]float64)
-		part_l := make([]int,0)
-		part_r := make([]int,0)
+		total_l := 0
+		total_r := 0 
 		if column_type==CAT{
 			for j:=0;j<len(samples);j++{
 				if samples[j][c]==value{
-					part_l = append(part_l,j)
+					total_l += 1
 					map_l[samples_labels[j]] += 1.0
 				}else{
-					part_r = append(part_r,j)
+					total_r += 1
 					map_r[samples_labels[j]] += 1.0
 				}
 			}
@@ -119,31 +119,52 @@ func getBestGain(samples [][]interface{}, c int, samples_labels []string, column
 		if column_type==NUMERIC{
 			for j:=0;j<len(samples);j++{
 				if samples[j][c].(float64)<=value.(float64){
-					part_l = append(part_l,j)
+					total_l += 1
 					map_l[samples_labels[j]] += 1.0
 				}else{
-					part_r = append(part_r,j)
+					total_r += 1
 					map_r[samples_labels[j]] += 1.0
 				}
 			}
 		}
 
-		p1 := float64(len(part_r)) / float64(len(samples))
-		p2 := float64(len(part_l)) / float64(len(samples))
+		p1 := float64(total_r) / float64(len(samples))
+		p2 := float64(total_l) / float64(len(samples))
 
-		new_entropy := p1*getEntropy(map_r,len(part_r)) + p2*getEntropy(map_l,len(part_l))
+		new_entropy := p1*getEntropy(map_r,total_r) + p2*getEntropy(map_l,total_l)
 		//fmt.Println(new_entropy,current_entropy)
 		entropy_gain := current_entropy - new_entropy
 		
 		if entropy_gain>=best_gain{
 			best_gain = entropy_gain
 			best_value = value
-			best_part_l = part_l
-			best_part_r = part_r
+			best_total_l = total_l
+			best_total_r = total_r
 		}
 	}
 
-	return best_gain, best_value, best_part_l,best_part_r
+	return best_gain, best_value, best_total_l, best_total_r
+}
+
+func splitSamples(samples [][]interface{}, column_type string, c int, value interface{}, part_l *[]int, part_r *[]int){
+		if column_type==CAT{
+			for j:=0;j<len(samples);j++{
+				if samples[j][c]==value{
+					*part_l = append(*part_l,j)
+				}else{
+					*part_r = append(*part_r,j)
+				}
+			}
+		}
+		if column_type==NUMERIC{
+			for j:=0;j<len(samples);j++{
+				if samples[j][c].(float64)<=value.(float64){
+					*part_l = append(*part_l,j)
+				}else{
+					*part_r = append(*part_r,j)
+				}
+			}
+		}
 }
 
 
@@ -156,10 +177,13 @@ func buildTree(samples [][]interface{}, samples_labels []string, selected_featur
 	columns_choosen := getRandomRange(column_count,split_count)
 	
 	best_gain := 0.0
-	var best_part_l []int
-	var best_part_r []int
+	var best_part_l []int = make([]int,0,len(samples))
+	var best_part_r []int = make([]int,0,len(samples))
+	var best_total_l int = 0 
+	var best_total_r int = 0
 	var best_value interface{}
 	var best_column int
+	var best_column_type string
 
 	current_entropy_map := make(map[string]float64)
 	for i:=0;i<len(samples_labels);i++{
@@ -174,21 +198,23 @@ func buildTree(samples [][]interface{}, samples_labels []string, selected_featur
 			column_type = NUMERIC
 		}
 
-		gain,value,part_l,part_r := getBestGain(samples,c,samples_labels,column_type,current_entropy)
+		gain,value,total_l,total_r := getBestGain(samples,c,samples_labels,column_type,current_entropy)
 		//fmt.Println("kkkkk",gain,part_l,part_r)
 		if gain>=best_gain{
 			best_gain = gain
-			best_part_l = part_l
-			best_part_r = part_r
 			best_value = value
 			best_column = c
+			best_column_type = column_type
+			best_total_l = total_l
+			best_total_r = total_r
 		}
 	}
 
-	if best_gain>0 && len(best_part_l)>0 && len(best_part_r)>0 {
+	if best_gain>0 && best_total_l>0 && best_total_r>0 {
 		node := &TreeNode{}
 		node.Value = best_value
 		node.ColumnNo = best_column
+		splitSamples(samples, best_column_type, best_column, best_value,&best_part_l,&best_part_r)
 		node.Left = buildTree(getSamples(samples,best_part_l),getLabels(samples_labels,best_part_l), selected_feature_count)
 		node.Right = buildTree(getSamples(samples,best_part_r),getLabels(samples_labels,best_part_r), selected_feature_count)
 		return node

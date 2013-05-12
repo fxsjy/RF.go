@@ -71,11 +71,11 @@ func getMSE(labels []float64) float64 {
 }
 
 
-func getBestGain(samples [][]interface{}, c int, samples_labels []float64, column_type string,current_mse float64) (float64,interface{},[]int,[]int){
-	var best_part_l []int
-	var best_part_r []int
+func getBestGain(samples [][]interface{}, c int, samples_labels []float64, column_type string,current_mse float64) (float64,interface{},int,int){
 	var best_value interface{}
 	best_gain := 0.0
+	best_total_r := 0
+	best_total_l := 0
 
 	uniq_values := make(map[interface{}]int)
 	for i:=0;i<len(samples);i++{
@@ -85,15 +85,15 @@ func getBestGain(samples [][]interface{}, c int, samples_labels []float64, colum
 	for value,_ := range uniq_values{
 		labels_l := make([]float64,0)
 		labels_r := make([]float64,0)
-		part_l := make([]int,0)
-		part_r := make([]int,0)
+		total_l := 0
+		total_r := 0 
 		if column_type==CAT{
 			for j:=0;j<len(samples);j++{
 				if samples[j][c]==value{
-					part_l = append(part_l,j)
+					total_l += 1
 					labels_l = append(labels_l,samples_labels[j])
 				}else{
-					part_r = append(part_r,j)
+					total_r += 1
 					labels_r = append(labels_r,samples_labels[j])
 				}
 			}
@@ -101,17 +101,17 @@ func getBestGain(samples [][]interface{}, c int, samples_labels []float64, colum
 		if column_type==NUMERIC{
 			for j:=0;j<len(samples);j++{
 				if samples[j][c].(float64)<=value.(float64){
-					part_l = append(part_l,j)
+					total_l += 1
 					labels_l = append(labels_l,samples_labels[j])
 				}else{
-					part_r = append(part_r,j)
+					total_r += 1
 					labels_r = append(labels_r,samples_labels[j])
 				}
 			}
 		}
 
-		p1 := float64(len(part_r)) / float64(len(samples))
-		p2 := float64(len(part_l)) / float64(len(samples))
+		p1 := float64(total_r) / float64(len(samples))
+		p2 := float64(total_l) / float64(len(samples))
 
 		new_mse := p1*getMSE(labels_r) + p2*getMSE(labels_l)
 
@@ -121,12 +121,33 @@ func getBestGain(samples [][]interface{}, c int, samples_labels []float64, colum
 		if mse_gain>=best_gain{
 			best_gain = mse_gain
 			best_value = value
-			best_part_l = part_l
-			best_part_r = part_r
+			best_total_l = total_l
+			best_total_r = total_r
 		}
 	}
 
-	return best_gain, best_value, best_part_l,best_part_r
+	return best_gain, best_value, best_total_l,best_total_r
+}
+
+func splitSamples(samples [][]interface{}, column_type string, c int, value interface{}, part_l *[]int, part_r *[]int){
+		if column_type==CAT{
+			for j:=0;j<len(samples);j++{
+				if samples[j][c]==value{
+					*part_l = append(*part_l,j)
+				}else{
+					*part_r = append(*part_r,j)
+				}
+			}
+		}
+		if column_type==NUMERIC{
+			for j:=0;j<len(samples);j++{
+				if samples[j][c].(float64)<=value.(float64){
+					*part_l = append(*part_l,j)
+				}else{
+					*part_r = append(*part_r,j)
+				}
+			}
+		}
 }
 
 
@@ -141,10 +162,13 @@ func buildTree(samples [][]interface{}, samples_labels []float64, selected_featu
 	columns_choosen := getRandomRange(column_count,split_count)
 	
 	best_gain := 0.0
-	var best_part_l []int
-	var best_part_r []int
+	var best_part_l []int = make([]int,0,len(samples))
+	var best_part_r []int = make([]int,0,len(samples))
 	var best_value interface{}
 	var best_column int
+	var best_total_l int = 0 
+	var best_total_r int = 0
+	var best_column_type string
 
 	current_mse := getMSE(samples_labels)
 
@@ -154,22 +178,24 @@ func buildTree(samples [][]interface{}, samples_labels []float64, selected_featu
 			column_type = NUMERIC
 		}
 		//fmt.Println(column_type)
-		gain,value,part_l,part_r := getBestGain(samples,c,samples_labels,column_type,current_mse)
+		gain,value,total_l,total_r := getBestGain(samples,c,samples_labels,column_type,current_mse)
 		//fmt.Println("kkkkk",gain,part_l,part_r)
 		if gain>=best_gain{
 			best_gain = gain
-			best_part_l = part_l
-			best_part_r = part_r
+			best_total_l = total_l
+			best_total_r = total_r
 			best_value = value
 			best_column = c
+			best_column_type = column_type
 		}
 	}
 
-	if best_gain>0 && len(best_part_l)>0 && len(best_part_r)>0 {
+	if best_gain>0 && best_total_l>0 && best_total_r>0 {
 		//fmt.Println(best_part_l,best_part_r)
 		node := &TreeNode{}
 		node.Value = best_value
 		node.ColumnNo = best_column
+		splitSamples(samples, best_column_type, best_column, best_value,&best_part_l,&best_part_r)
 		node.Left = buildTree(getSamples(samples,best_part_l),getLabels(samples_labels,best_part_l), selected_feature_count)
 		node.Right = buildTree(getSamples(samples,best_part_r),getLabels(samples_labels,best_part_r), selected_feature_count)
 		return node
