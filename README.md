@@ -16,3 +16,7 @@ RF.go
 * RF.go supports both Classification and Regression. The examples can be found in the repository.
 
 * RF.go supports dumpping and loading the forest data structure between RAM and disk, in a JSON format file
+
+### Installation
+1. [Install Go](http://www.golang.org) 
+2. ```$ go get github.com/fxsjy/RF.go/RF ``` This will put the binary in ```$GOROOT/bin```
